@@ -68,6 +68,7 @@ public class ConfigHandler {
 					"This will disable some of Traincrafts easier recipes to balance Modpacks");
             WINDMILL_CHECK_RADIUS = cf.getInt("WINDMILL_CHECK_RADIUS", CATEGORY_GENERAL, 1, -1, 10, "This sets the radius for the can-see-the-sky-check area around the windmill. 0=only location of windmill, 1=3x3, 2=5x5 etc. Use -1 to turn of this check completely. DEFAULT: 1");
 
+            FUEL_EFFECTIVENESS_MULTIPLIER = cf.getInt("FUEL_EFFECTIVENESS_MULTIPLIER", CATEGORY_GENERAL, 1, 1, 20, "This will divide the Fuel Consumption every couple seconds by this number. For example, default 60 fuel every 3 seconds divided by 2 means 30 fuel every 3 seconds." );
 
 		} catch (Exception e) {
 			Traincraft.tcLog.fatal("Traincraft had a problem loading its configuration\n" + e);
