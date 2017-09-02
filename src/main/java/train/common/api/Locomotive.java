@@ -72,6 +72,9 @@ public abstract class Locomotive extends EntityRollingStock implements IInventor
 	 * used internally inside each loco to set the fuel consumption
 	 */
 	protected int fuelRate;
+
+	public int fuelEffectiveness = ConfigHandler.FUEL_EFFECTIVENESS_MULTIPLIER;
+
 	/**
 	 * This is for the "can pull" feature It is used to avoid conflict with
 	 * isCartLockDown @see EntityRollingStock line 422 This is set in @see
@@ -233,7 +236,7 @@ public abstract class Locomotive extends EntityRollingStock implements IInventor
 	 * @return int
 	 */
 	public int getFuelConsumption() {
-		return fuelRate;
+		return fuelRate / fuelEffectiveness;
 	}
 
 	/**

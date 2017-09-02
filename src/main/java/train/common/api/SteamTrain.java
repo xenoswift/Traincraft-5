@@ -59,9 +59,9 @@ public abstract class SteamTrain extends Locomotive implements IFluidHandler {
 	 */
 	public int getWaterConsumption() {
 		if (trainSpec != null) {
-			return trainSpec.getWaterConsumption();
+			return (trainSpec.getWaterConsumption()) / fuelEffectiveness;
 		}
-		return 200;
+		return 200 / fuelEffectiveness;
 	}
 
 	@Override

@@ -36,6 +36,8 @@ public class ConfigHandler {
 	public static boolean RETROGEN_CHUNKS;
 	public static boolean	MAKE_MODPACKS_GREAT_AGAIN;
 
+	public static int FUEL_EFFECTIVENESS_MULTIPLIER;
+
 
 
 	public static void init(File configFile) {
@@ -65,7 +67,8 @@ public class ConfigHandler {
 			MAKE_MODPACKS_GREAT_AGAIN = cf.getBoolean("MAKE_MODPACKS_GREAT_AGAIN", CATEGORY_GENERAL, false,
 					"This will disable some of Traincrafts easier recipes to balance Modpacks");
             WINDMILL_CHECK_RADIUS = cf.getInt("WINDMILL_CHECK_RADIUS", CATEGORY_GENERAL, 1, -1, 10, "This sets the radius for the can-see-the-sky-check area around the windmill. 0=only location of windmill, 1=3x3, 2=5x5 etc. Use -1 to turn of this check completely. DEFAULT: 1");
-		
+
+
 		} catch (Exception e) {
 			Traincraft.tcLog.fatal("Traincraft had a problem loading its configuration\n" + e);
 		} finally {
