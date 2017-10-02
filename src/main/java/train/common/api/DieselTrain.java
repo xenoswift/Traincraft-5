@@ -6,6 +6,8 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.*;
 import train.common.api.LiquidManager.StandardTank;
+import train.common.entity.rollingStock.EntityBUnitEMDF3;
+import train.common.entity.rollingStock.EntityBUnitEMDF7;
 
 public abstract class DieselTrain extends Locomotive implements IFluidHandler {
 
@@ -154,12 +156,40 @@ public abstract class DieselTrain extends Locomotive implements IFluidHandler {
 			motionZ *= 0.8;
 		}
 		else {
+			FluidStack drain = null;
+			if(cartLinked1 instanceof LiquidTank && !(cartLinked1 instanceof EntityBUnitEMDF7) && !(cartLinked1 instanceof EntityBUnitEMDF3)){
+				if (getFluid() == null) {
+					drain = ((LiquidTank) cartLinked1).drain(ForgeDirection.UNKNOWN, new FluidStack(LiquidManager.DIESEL, 100), true);
+					if (drain == null){
+						drain = ((LiquidTank) cartLinked1).drain(ForgeDirection.UNKNOWN, new FluidStack(LiquidManager.REFINED_FUEL, 100), true);
+					}
+				} else if (getFluid().getFluid() == LiquidManager.DIESEL) {
+					drain = ((LiquidTank) cartLinked1).drain(ForgeDirection.UNKNOWN, new FluidStack(LiquidManager.DIESEL, 100), true);
+				} else {
+					drain = ((LiquidTank) cartLinked1).drain(ForgeDirection.UNKNOWN, new FluidStack(LiquidManager.REFINED_FUEL, 100), true);
+				}
+			} else if (cartLinked2 instanceof LiquidTank && !(cartLinked2 instanceof EntityBUnitEMDF7) && !(cartLinked2 instanceof EntityBUnitEMDF3)){
+				if (getFluid() == null) {
+					drain = ((LiquidTank) cartLinked1).drain(ForgeDirection.UNKNOWN, new FluidStack(LiquidManager.DIESEL, 100), true);
+					if (drain == null){
+						drain = ((LiquidTank) cartLinked1).drain(ForgeDirection.UNKNOWN, new FluidStack(LiquidManager.REFINED_FUEL, 100), true);
+					}
+				} else if (getFluid().getFluid() == LiquidManager.DIESEL) {
+					drain = ((LiquidTank) cartLinked2).drain(ForgeDirection.UNKNOWN, new FluidStack(LiquidManager.DIESEL, 100), true);
+				} else {
+					drain = ((LiquidTank) cartLinked2).drain(ForgeDirection.UNKNOWN, new FluidStack(LiquidManager.REFINED_FUEL, 100), true);
+				}
+			}
+			if (drain != null){
+				fill(ForgeDirection.UNKNOWN, drain, true);
+			}
 			if (this.isLocoTurnedOn()) {
 				fuelTrain -= amount;
-				if (fuelTrain < 0) fuelTrain = 0;
-			}
-			if (this.isLocoTurnedOn() && getDiesel() > 0) {
-				drain(ForgeDirection.UNKNOWN, amount, true);
+				if (fuelTrain < 0) {
+					fuelTrain = 0;
+				} else {
+					drain(ForgeDirection.UNKNOWN, amount, true);
+				}
 			}
 		}
 	}

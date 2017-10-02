@@ -1,10 +1,12 @@
 package train.client.core.handlers;
 
+import net.minecraft.client.Minecraft;
+import org.lwjgl.input.Keyboard;
+
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.InputEvent;
 import net.minecraft.client.settings.KeyBinding;
-import org.lwjgl.input.Keyboard;
 import train.common.Traincraft;
 import train.common.core.network.PacketKeyPress;
 
@@ -14,9 +16,6 @@ public class TCKeyHandler
 	public static KeyBinding inventory;
 	public static KeyBinding up;
 	public static KeyBinding down;
-	public static KeyBinding forwards;
-	public static KeyBinding backwards;
-	public static KeyBinding brake;
 	public static KeyBinding idle;
 	public static KeyBinding furnace;
 	public TCKeyHandler()
@@ -34,22 +33,29 @@ public class TCKeyHandler
 		furnace = new KeyBinding("key.traincraft.furnace", Keyboard.KEY_F, "key.categories.traincraft");
 		ClientRegistry.registerKeyBinding(furnace);
 
-
-		forwards = new KeyBinding("key.traincraft.forwards", Keyboard.KEY_U, "key.categories.traincraft");
-		ClientRegistry.registerKeyBinding(forwards);
-		backwards = new KeyBinding("key.traincraft.backwards", Keyboard.KEY_J, "key.categories.traincraft");
-		ClientRegistry.registerKeyBinding(backwards);
-		brake = new KeyBinding("key.traincraft.brake", Keyboard.KEY_L, "key.categories.traincraft");
-		ClientRegistry.registerKeyBinding(brake);
 	}
 	@SubscribeEvent
 	public void onKeyInput(InputEvent.KeyInputEvent event) {
-		if (up.getIsKeyPressed()){sendKeyControlsPacket(0);}
-		if (down.getIsKeyPressed()){ sendKeyControlsPacket(2);}
-		if (idle.isPressed()){ sendKeyControlsPacket(6);}
-		if (inventory.isPressed()){ sendKeyControlsPacket(7);}
-		if (horn.isPressed()){ sendKeyControlsPacket(8);}
-		if (furnace.isPressed()){ sendKeyControlsPacket(9);}
+		if(!Minecraft.getMinecraft().ingameGUI.getChatGUI().getChatOpen()) {
+			if (up.getIsKeyPressed()) {
+				sendKeyControlsPacket(0);
+			}
+			if (down.getIsKeyPressed()) {
+				sendKeyControlsPacket(2);
+			}
+			if (idle.isPressed()) {
+				sendKeyControlsPacket(6);
+			}
+			if (inventory.isPressed()) {
+				sendKeyControlsPacket(7);
+			}
+			if (horn.isPressed()) {
+				sendKeyControlsPacket(8);
+			}
+			if (furnace.isPressed()) {
+				sendKeyControlsPacket(9);
+			}
+		}
 	}
 	
 	private static void sendKeyControlsPacket(int key)

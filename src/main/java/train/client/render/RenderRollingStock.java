@@ -9,6 +9,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Vec3;
 import org.lwjgl.opengl.GL11;
+import train.client.tmt.Tessellator;
 import train.common.api.EntityRollingStock;
 import train.common.api.Locomotive;
 import train.common.entity.rollingStock.EntityTracksBuilder;
@@ -19,8 +20,7 @@ import java.util.Random;
 
 @SideOnly(Side.CLIENT)
 public class RenderRollingStock extends Render {
-	private Random random = new Random();
-	private double serverYaw = 0;
+	private static Random random = new Random();
 
 	public RenderRollingStock() {
 		this.shadowSize = 0.5F;
@@ -29,7 +29,7 @@ public class RenderRollingStock extends Render {
 	/**
 	 * Renders the Minecart.
 	 */
-	public void renderTheMinecart(EntityRollingStock cart, double x, double y, double z, float yaw, float time) {
+	public static void renderTheMinecart(EntityRollingStock cart, double x, double y, double z, float yaw, float time) {
 		GL11.glPushMatrix();
 		long var10 = cart.getEntityId() * 493286711L;
 		var10 = var10 * var10 * 4392167121L + var10 * 98761L;
@@ -87,15 +87,12 @@ public class RenderRollingStock extends Render {
 		}
 		yaw += 360.0F;
 
-		serverYaw = cart.rotationYaw;
-		//System.out.println("yaw before "+yaw+" server yaw before "+serverYaw);
-		serverYaw += 180.0D;
-		serverYaw %= 360.0D;
-		if (serverYaw < 0.0D) {
-			serverYaw += 360.0D;
+		float serverYaw = (cart.rotationYaw + 180) % 360;
+		if (serverYaw < 0.0F) {
+			serverYaw += 360.0F;
 		}
-		serverYaw += 360.0D;
-		if (Math.abs(yaw - serverYaw) > 90.0D) {
+		serverYaw += 360.0F;
+		if (Math.abs(yaw - serverYaw) > 90.0F) {
 			yaw += 180.0F;
 			pitch = -pitch;
 		}
@@ -111,7 +108,7 @@ public class RenderRollingStock extends Render {
 		int k = MathHelper.floor_double(cart.posZ);
 
 		// NOTE: func_150049_b_ = isRailBlockAt
-		if (cart != null && cart.worldObj != null && (BlockRailBase.func_150049_b_(cart.worldObj, i, j, k)
+		if (cart.worldObj != null && (BlockRailBase.func_150049_b_(cart.worldObj, i, j, k)
 				|| BlockRailBase.func_150049_b_(cart.worldObj, i, j - 1, k))) {
 			cart.setMountedYOffset(-0.55);
 		} else if (cart.posYFromServer != 0) {
@@ -146,7 +143,7 @@ public class RenderRollingStock extends Render {
 		}
 		else {
 			// NOTE: func_150049_b_ = isRailBlockAt
-			if (cart!=null && cart.worldObj!=null && (BlockRailBase.func_150049_b_(cart.worldObj, i, j, k) || BlockRailBase.func_150049_b_(cart.worldObj, i, j-1, k) )){
+			if (cart.worldObj!=null && (BlockRailBase.func_150049_b_(cart.worldObj, i, j, k) || BlockRailBase.func_150049_b_(cart.worldObj, i, j-1, k) )){
 				if(cart.isClientInReverse){
 					yaw+=180;
 					pitch = -pitch;
@@ -178,7 +175,7 @@ public class RenderRollingStock extends Render {
 				cart.setRenderPitch(pitch);
 			}
 		}
-		
+
 		//if(cart.bogie!=null)cart.worldObj.spawnParticle("reddust", cart.bogie.posX, cart.bogie.posY, cart.bogie.posZ, 0.1, 0.4, 0.1);
 
 		//GL11.glRotatef(180.0F - yaw, 0.0F, 1.0F, 0.0F);
@@ -219,8 +216,10 @@ public class RenderRollingStock extends Render {
 		for (RenderEnum renders : RenderEnum.values()) {
 			if (renders.getEntityClass() != null && renders.getEntityClass().equals(cart.getClass())) {
 				//loadTexture(getTextureFile(renders.getTexture(), renders.getIsMultiTextured(), cart));
-				bindEntityTexture(cart);
-				GL11.glTranslatef(renders.getTrans()[0], renders.getTrans()[1], renders.getTrans()[2]);
+				Tessellator.bindTexture(getTexture(cart));
+				if (renders.getTrans() != null) {
+					GL11.glTranslatef(renders.getTrans()[0], renders.getTrans()[1], renders.getTrans()[2]);
+				}
 				if (renders.getRotate() != null) {
 					GL11.glRotatef(renders.getRotate()[0], 1.0F, 0.0F, 0.0F);
 					GL11.glRotatef(renders.getRotate()[1], 0.0F, 1.0F, 0.0F);
@@ -253,7 +252,7 @@ public class RenderRollingStock extends Render {
 		GL11.glPopMatrix();
 	}
 
-	private ResourceLocation getResourceFile(String texture, boolean multiTexture, EntityRollingStock cart) {
+	private static ResourceLocation getResourceFile(String texture, boolean multiTexture, EntityRollingStock cart) {
 		if (multiTexture) {
 			return new ResourceLocation(Info.resourceLocation, Info.trainsPrefix + texture + cart.getColorAsString() + ".png");
 		} else {
@@ -261,7 +260,7 @@ public class RenderRollingStock extends Render {
 		}
 	}
 
-	private void renderSmokeFX(EntityRollingStock cart, float yaw, float pitch, String smokeType, ArrayList<double[]> smokeFX, int smokeIterations, float time, boolean hasSmokeOnSlopes) {
+	private static void renderSmokeFX(EntityRollingStock cart, float yaw, float pitch, String smokeType, ArrayList<double[]> smokeFX, int smokeIterations, float time, boolean hasSmokeOnSlopes) {
 		if(cart instanceof Locomotive && !((Locomotive)cart).isLocoTurnedOn()){return;}
 		double rads = yaw * 3.141592653589793D / 180.0D;
 		double pitchRads = pitch * 3.141592653589793D / 180.0D;
@@ -287,7 +286,7 @@ public class RenderRollingStock extends Render {
 					z = (float) cart.posZ + random.nextFloat() * 0.2F;
 					double yCorrectDown = 0;
 					for (double[] smoke : smokeFX) {
-						
+
 						if (pitchRads > 0){ yCorrectDown = -Math.tan(pitchRads);}
 						if (smoke[0] > 0){ yCorrectDown = Math.tan(-pitchRads);}
 
@@ -298,7 +297,7 @@ public class RenderRollingStock extends Render {
 		}
 	}
 
-	private void renderExplosionFX(EntityRollingStock cart, float yaw, float pitch, String explosionType, ArrayList<double[]> explosionFX, int explosionFXIterations, boolean hasSmokeOnSlopes) {
+	private static void renderExplosionFX(EntityRollingStock cart, float yaw, float pitch, String explosionType, ArrayList<double[]> explosionFX, int explosionFXIterations, boolean hasSmokeOnSlopes) {
 		if(cart instanceof Locomotive && !((Locomotive)cart).isLocoTurnedOn())return;
 		float yawMod = yaw % 360;
 		double pitchRads = Math.toDegrees(pitch);
@@ -339,11 +338,15 @@ public class RenderRollingStock extends Render {
 
 	@Override
 	public void doRender(Entity par1Entity, double x, double y, double d2, float yaw, float time) {
-		this.renderTheMinecart((EntityRollingStock) par1Entity, x, y, d2, yaw, time);
+		renderTheMinecart((EntityRollingStock) par1Entity, x, y, d2, yaw, time);
 	}
 
-	@Override
+	//@Override
 	protected ResourceLocation getEntityTexture(Entity entity) {
+		return getTexture(entity);
+	}
+
+	private static ResourceLocation getTexture(Entity entity) {
 		for (RenderEnum renders : RenderEnum.values()) {
 			if (renders.getEntityClass() != null && renders.getEntityClass().equals(entity.getClass())) { return getResourceFile(renders.getTexture(), renders.getIsMultiTextured(), (EntityRollingStock) entity); }
 		}

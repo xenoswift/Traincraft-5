@@ -1,6 +1,5 @@
 package train.client.tmt;
 
-
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.model.PositionTextureVertex;
 import net.minecraft.client.model.TexturedQuad;
@@ -8,6 +7,7 @@ import net.minecraft.client.renderer.GLAllocation;
 import org.lwjgl.opengl.GL11;
 
 import java.util.*;
+
 /**
  * An extension to the ModelRenderer class that contains various new methods to make your models.
  * <br /><br />
@@ -20,6 +20,7 @@ import java.util.*;
  * This version of TMT has been heavily modified by Eternal Blue Flame and does not reflect the quality or features of any other version.
  * Models made for other versions of TMT may not work with this version, and models made for this version may not work in other versions.
  * Shape3D is not supported in this version, use Shape Boxes instead.
+ * The shape's name is used by the Model Animators for various functionality, there are specific pre-defined names to use for said features
  */
 public class ModelRendererTurbo extends ModelRenderer {
 
@@ -80,6 +81,7 @@ public class ModelRendererTurbo extends ModelRenderer {
      * Creates a new ModelRenderTurbo object with a name. It requires the coordinates of the
      * position of the texture, but also allows you to specify the width and height
      * of the texture, allowing you to use bigger textures instead.
+     * It also requires a string to define the name of the box, this is used for animation
      * @param modelbase the shape.
      * @param textureX the texture left position
      * @param textureY the texture top position
@@ -184,8 +186,13 @@ public class ModelRendererTurbo extends ModelRenderer {
      * @param d the depth of the shape, used in determining the texture
      */
     public void addRectShape(float[] v, float[] v1, float[] v2, float[] v3, float[] v4, float[] v5, float[] v6, float[] v7, float w, float h, float d) {
-    	PositionTextureVertex[] verts = new PositionTextureVertex[8];
-        TexturedPolygon[] poly = new TexturedPolygon[6];
+        //check which sides should be rendered.
+        boolean showZ= w!=0.01;
+        boolean showY= h!=0.01;
+        boolean showX= d!=0.01;
+
+        PositionTextureVertex[] verts = new PositionTextureVertex[8];
+        TexturedPolygon[] poly = new TexturedPolygon[(showX?2:0) + (showY?2:0) +(showZ?2:0)];
         verts[0] = new PositionTextureVertex(v[0], v[1], v[2], 0.0F, 0.0F);
         verts[1] = new PositionTextureVertex(v1[0], v1[1], v1[2], 0.0F, 8F);
         verts[2] = new PositionTextureVertex(v2[0], v2[1], v2[2], 8F, 8F);
@@ -194,24 +201,39 @@ public class ModelRendererTurbo extends ModelRenderer {
         verts[5] = new PositionTextureVertex(v5[0], v5[1], v5[2], 0.0F, 8F);
         verts[6] = new PositionTextureVertex(v6[0], v6[1], v6[2], 8F, 8F);
         verts[7] = new PositionTextureVertex(v7[0], v7[1], v7[2], 8F, 0.0F);
-        poly[0] = addPolygonReturn(new PositionTextureVertex[] {
-                verts[5], verts[1], verts[2], verts[6]
-        }, textureOffsetX + d + w, textureOffsetY + d, textureOffsetX + d + w + d, textureOffsetY + d + h);
-        poly[1] = addPolygonReturn(new PositionTextureVertex[] {
-                verts[0], verts[4], verts[7], verts[3]
-        }, textureOffsetX, textureOffsetY + d, textureOffsetX + d, textureOffsetY + d + h);
-        poly[2] = addPolygonReturn(new PositionTextureVertex[] {
-                verts[5], verts[4], verts[0], verts[1]
-        }, textureOffsetX + d, textureOffsetY, textureOffsetX + d + w, textureOffsetY + d);
-        poly[3] = addPolygonReturn(new PositionTextureVertex[] {
-                verts[2], verts[3], verts[7], verts[6]
-        }, textureOffsetX + d + w, textureOffsetY, textureOffsetX + d + w + w, textureOffsetY + d);
-        poly[4] = addPolygonReturn(new PositionTextureVertex[] {
-                verts[1], verts[0], verts[3], verts[2]
-        }, textureOffsetX + d, textureOffsetY + d, textureOffsetX + d + w, textureOffsetY + d + h);
-        poly[5] = addPolygonReturn(new PositionTextureVertex[] {
-                verts[4], verts[5], verts[6], verts[7]
-        }, textureOffsetX + d + w + d, textureOffsetY + d, textureOffsetX + d + w + d + w, textureOffsetY + d + h);
+
+        int normal =0;
+
+        if(showX) {
+            poly[normal] = addPolygonReturn(new PositionTextureVertex[]{
+                    verts[5], verts[1], verts[2], verts[6]
+            }, textureOffsetX + d + w, textureOffsetY + d, textureOffsetX + d + w + d, textureOffsetY + d + h);
+            normal++;
+            poly[normal] = addPolygonReturn(new PositionTextureVertex[]{
+                    verts[0], verts[4], verts[7], verts[3]
+            }, textureOffsetX, textureOffsetY + d, textureOffsetX + d, textureOffsetY + d + h);
+            normal++;
+        }
+        if(showY) {
+            poly[normal] = addPolygonReturn(new PositionTextureVertex[]{
+                    verts[5], verts[4], verts[0], verts[1]
+            }, textureOffsetX + d, textureOffsetY, textureOffsetX + d + w, textureOffsetY + d);
+            normal++;
+            poly[normal] = addPolygonReturn(new PositionTextureVertex[]{
+                    verts[2], verts[3], verts[7], verts[6]
+            }, textureOffsetX + d + w, textureOffsetY, textureOffsetX + d + w + w, textureOffsetY + d);
+            normal++;
+        }
+        if(showZ) {
+            poly[normal] = addPolygonReturn(new PositionTextureVertex[]{
+                    verts[1], verts[0], verts[3], verts[2]
+            }, textureOffsetX + d, textureOffsetY + d, textureOffsetX + d + w, textureOffsetY + d + h);
+            normal++;
+            poly[normal] = addPolygonReturn(new PositionTextureVertex[]{
+                    verts[4], verts[5], verts[6], verts[7]
+            }, textureOffsetX + d + w + d, textureOffsetY + d, textureOffsetX + d + w + d + w, textureOffsetY + d + h);
+        }
+
         if(mirror ^ flip) {
             for(TexturedPolygon polygon : poly) {
             	polygon.flipFace();
@@ -254,13 +276,12 @@ public class ModelRendererTurbo extends ModelRenderer {
     public void addBox(float x, float y, float z, float w, float h, float d, float expansion, float scale) {
         //small edit to prevent depth errors
         if (w ==0){
-            w=0.001f;
+            w=0.01f;
         } else if (h ==0){
-            h=0.001f;
+            h=0.1f;
         } else if (d ==0){
-            d=0.001f;
+            d=0.01f;
         }
-
         xScale = w * 0.065f;
         yScale = h * 0.065f;
         zScale = d * 0.065f;
@@ -382,6 +403,153 @@ public class ModelRendererTurbo extends ModelRenderer {
         	v7[0] -= m * bottomScale;
         	v7[2] += bottomScale;
         	break;
+        }
+
+        addRectShape(v, v1, v2, v3, v4, v5, v6, v7, w, h, d);
+    }
+
+    /**
+     * Adds a trapezoid-like shape. It's achieved by expanding the shape on one side.
+     * You can use the static variables <code>MR_RIGHT</code>, <code>MR_LEFT</code>,
+     * <code>MR_FRONT</code>, <code>MR_BACK</code>, <code>MR_TOP</code> and
+     * <code>MR_BOTTOM</code>.
+     * @param x the starting x-position
+     * @param y the starting y-position
+     * @param z the starting z-position
+     * @param w the width (over the x-direction)
+     * @param h the height (over the y-direction)
+     * @param d the depth (over the z-direction)
+     * @param scale the "scale" of the box. It only increases the size in each direction by that many.
+     * @param bScale1 the "scale" of the bottom - Top
+     * @param bScale2 the "scale" of the bottom - Bottom
+     * @param bScale3 the "scale" of the bottom - Left
+     * @param bScale4 the "scale" of the bottom - Right
+     * @param fScale1 the "scale" of the top - Left
+     * @param fScale2 the "scale" of the top - Right
+     * @param dir the side the scaling is applied to
+     */
+    public void addFlexTrapezoid(float x, float y, float z, int w, int h, int d, float scale, float bScale1, float bScale2, float bScale3, float bScale4, float fScale1, float fScale2, int dir)
+    {
+        float f4 = x + w;
+        float f5 = y + h;
+        float f6 = z + d;
+        x -= scale;
+        y -= scale;
+        z -= scale;
+        f4 += scale;
+        f5 += scale;
+        f6 += scale;
+
+        int m = (mirror ? -1 : 1);
+        if(mirror)
+        {
+            float f7 = f4;
+            f4 = x;
+            x = f7;
+        }
+
+        float[] v = {x, y, z};
+        float[] v1 = {f4, y, z};
+        float[] v2 = {f4, f5, z};
+        float[] v3 = {x, f5, z};
+        float[] v4 = {x, y, f6};
+        float[] v5 = {f4, y, f6};
+        float[] v6 = {f4, f5, f6};
+        float[] v7 = {x, f5, f6};
+
+
+        switch(dir)
+        {
+            case MR_RIGHT:
+                v[2] -= fScale1;
+                v1[2] -= fScale1;
+                v4[2] += fScale2;
+                v5[2] += fScale2;
+
+                v[1] -= bScale1;
+                v[2] -= bScale3;
+                v3[1] += bScale2;
+                v3[2] -= bScale3;
+                v4[1] -= bScale1;
+                v4[2] += bScale4;
+                v7[1] += bScale2;
+                v7[2] += bScale4;
+                break;
+            case MR_LEFT:
+                v[2] -= fScale1;
+                v1[2] -= fScale1;
+                v4[2] += fScale2;
+                v5[2] += fScale2;
+
+                v1[1] -= bScale1;
+                v1[2] -= bScale3;
+                v2[1] += bScale2;
+                v2[2] -= bScale3;
+                v5[1] -= bScale1;
+                v5[2] += bScale4;
+                v6[1] += bScale2;
+                v6[2] += bScale4;
+                break;
+            case MR_FRONT:
+                v1[1] -= fScale1;
+                v5[1] -= fScale1;
+                v2[1] += fScale2;
+                v6[1] += fScale2;
+
+                v[0] -= m * bScale4;
+                v[1] -= bScale1;
+                v1[0] += m * bScale3;
+                v1[1] -= bScale1;
+                v2[0] += m * bScale3;
+                v2[1] += bScale2;
+                v3[0] -= m * bScale4;
+                v3[1] += bScale2;
+                break;
+            case MR_BACK:
+                v1[1] -= fScale1;
+                v5[1] -= fScale1;
+                v2[1] += fScale2;
+                v6[1] += fScale2;
+
+                v4[0] -= m * bScale4;
+                v4[1] -= bScale1;
+                v5[0] += m * bScale3;
+                v5[1] -= bScale1;
+                v6[0] += m * bScale3;
+                v6[1] += bScale2;
+                v7[0] -= m * bScale4;
+                v7[1] += bScale2;
+                break;
+            case MR_TOP:
+                v1[2] -= fScale1;
+                v2[2] -= fScale1;
+                v5[2] += fScale2;
+                v6[2] += fScale2;
+
+                v[0] -= m * bScale1;
+                v[2] -= bScale3;
+                v1[0] += m * bScale2;
+                v1[2] -= bScale3;
+                v4[0] -= m * bScale1;
+                v4[2] += bScale4;
+                v5[0] += m * bScale2;
+                v5[2] += bScale4;
+                break;
+            case MR_BOTTOM:
+                v1[2] -= fScale1;
+                v2[2] -= fScale1;
+                v5[2] += fScale2;
+                v6[2] += fScale2;
+
+                v2[0] += m * bScale2;
+                v2[2] -= bScale3;
+                v3[0] -= m * bScale1;
+                v3[2] -= bScale3;
+                v6[0] += m * bScale2;
+                v6[2] += bScale4;
+                v7[0] -= m * bScale1;
+                v7[2] += bScale4;
+                break;
         }
 
         addRectShape(v, v1, v2, v3, v4, v5, v6, v7, w, h, d);
@@ -917,8 +1085,8 @@ public class ModelRendererTurbo extends ModelRenderer {
     public Map<String, List<TexturedPolygon>> textureGroup = new HashMap<String, List<TexturedPolygon>>();
     private TransformGroupBone currentGroup;
     private List<TexturedPolygon> currentTextureGroup;
-    public boolean mirror = true;
-    public boolean flip = true;
+    public boolean mirror = false;
+    public boolean flip = false;
     public boolean showModel = true;
     //ETERNAL EDIT: removed field_1402_i, use ShowModel instead.
     //ETERNAL EDIT: removed forcedRecompile, just use compiled
@@ -936,9 +1104,23 @@ public class ModelRendererTurbo extends ModelRenderer {
 	private static final float pi = (float) Math.PI;
 
 	public void addShapeBox(float x, float y, float z, int w, int h, int d, float scale, float x0, float y0, float z0, float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4, float x5, float y5, float z5, float x6, float y6, float z6, float x7, float y7, float z7){
-		float f4 = x + w + scale;
-        float f5 = y + h + scale;
-        float f6 = z + d + scale;
+
+	    float w2 = w;
+        float h2 = h;
+        float d2 = d;
+
+        //small edit to prevent depth errors
+        if (w2 ==0){
+            w2=0.01f;
+        } else if (h2 ==0){
+            h2=0.01f;
+        } else if (d ==0){
+            d2=0.01f;
+        }
+
+		float f4 = x + w2 + scale;
+        float f5 = y + h2 + scale;
+        float f6 = z + d2 + scale;
 		x -= scale; y -= scale; z -= scale;
 		if(mirror){
 			float f7 = f4;
@@ -953,6 +1135,6 @@ public class ModelRendererTurbo extends ModelRenderer {
 		float[] v5 = {f4 + x2, y  - y2, f6 + z2};
 		float[] v6 = {f4 + x6, f5 + y6, f6 + z6};
 		float[] v7 = {x  - x7, f5 + y7, f6 + z7};
-		addRectShape(v, v1, v2, v3, v4, v5, v6, v7, w, h, d);
+		addRectShape(v, v1, v2, v3, v4, v5, v6, v7, w2, h2, d2);
 	}
 }
