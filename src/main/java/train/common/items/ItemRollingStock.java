@@ -71,34 +71,35 @@ public class ItemRollingStock extends ItemMinecart implements IMinecart, IMineca
 			trainCreator = var5.getString("trainCreator");
 			/*if (id > 0)
 				par3List.add("\u00a77" + "ID: " + id);*/
-			if (trainCreator.length() > 0)
+			if (trainCreator.length() > 0) {
 				par3List.add("\u00a77" + "Creator: " + trainCreator);
+			}
 			int color = var5.getInteger("trainColor");
-			if (var5.hasKey("trainColor") && color <= 16)
+			if (var5.hasKey("trainColor") && color <= 16) {
 				par3List.add("\u00a77" + "Color: " + AbstractTrains.getColorAsString(color));
+			}
 
 		}
 		double mass = getMass();
 		int power = getMHP();
 		int maxSpeed = getMaxSpeed();
-		String[] additionnalInfo = getAdditionnalInfo();
-		if (getTrainType().length() > 0)
+		if (getTrainType().length() > 0) {
 			par3List.add("\u00a77" + "Type: " + getTrainType());
-		if (power > 0)
-			par3List.add("\u00a77" + "Power: " + power +" Mhp");
-		if (mass != 0)
+		}
+		if (power > 0) {
+			par3List.add("\u00a77" + "Power: " + power + " Mhp");
+		}
+		if (mass != 0) {
 			par3List.add("\u00a77" + "Mass: " + (mass * 10));
-		if (maxSpeed > 0)
+		}
+		if (maxSpeed > 0) {
 			par3List.add("\u00a77" + "Max Speed: " + maxSpeed);
+		}
 		if(getCargoCapacity()>0){
 			par3List.add("\u00a77" + "Slots: "+getCargoCapacity());
 		}
-		if(additionnalInfo!=null && additionnalInfo.length>0 && additionnalInfo[0].length()>0){
-			for(int i=0;i<additionnalInfo.length;i++){
-				if(additionnalInfo[i].length()>0){
-					par3List.add("\u00a77" + additionnalInfo[i]);
-				}
-			}
+		if(getAdditionnalInfo()!=null){
+			par3List.add("\u00a77" + getAdditionnalInfo());
 		}
 	}
 	@Override
@@ -138,7 +139,7 @@ public class ItemRollingStock extends ItemMinecart implements IMinecart, IMineca
 		}
 		return 0;
 	}
-	public String[] getAdditionnalInfo() {
+	public String getAdditionnalInfo() {
 		for(EnumTrains trains : EnumTrains.values()){
 			if(trains.getItem() == this){
 				return trains.getAdditionnalTooltip();
@@ -202,12 +203,16 @@ public class ItemRollingStock extends ItemMinecart implements IMinecart, IMineca
 		EntityRollingStock rollingStock = null;
 		for(EnumTrains train : EnumTrains.values()){
 			if(train.getItem() == itemstack.getItem()){
+				//System.out.println(train.getItem().getUnlocalizedName());
+				//System.out.println(world!=null);
 				rollingStock = (EntityRollingStock) train.getEntity(world, i + 0.5F, j + 0.5F, k + 0.5F);
 				if(train.getColors()!=null){
 					if(rollingStock != null){
-						rollingStock.setColor(AbstractTrains.getColorFromString(train.getColors()[0]));
+						rollingStock.setColor((train.getColors()[0]));
 					}
 				}
+
+				break;
 			}
 		}
 		if (rollingStock != null) {
@@ -300,9 +305,15 @@ public class ItemRollingStock extends ItemMinecart implements IMinecart, IMineca
 								rollingStock.serverRealRotation = 90;
 							}
 						}else{
-							player.addChatMessage(new ChatComponentText("Place me on a straight piece of track!"));
-							rollingStock.setDead();
-							return rollingStock;
+							if(player!=null) {
+								player.addChatMessage(new ChatComponentText("Place me on a straight piece of track!"));
+								rollingStock.setDead();
+								return rollingStock;
+							} else {
+								if(meta == 0 || meta == 2){
+									rollingStock.serverRealRotation = 90;
+								}
+							}
 						}
 					}
 				}

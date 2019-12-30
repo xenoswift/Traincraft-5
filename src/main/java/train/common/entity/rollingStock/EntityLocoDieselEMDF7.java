@@ -37,9 +37,10 @@ public class EntityLocoDieselEMDF7 extends DieselTrain {
 
 	@Override
 	public void updateRiderPosition() {
-		double pitchRads = this.anglePitchClient * Math.PI / 180.0D;
+		if(riddenByEntity==null){return;}
+		double pitchRads = this.anglePitchClient * (Math.PI / 180.0D);
 		double distance = 2.3;
-		double yOffset = 0.4;
+		double yOffset = 0.65;
 		float rotationCos1 = (float) Math.cos(Math.toRadians(this.renderYaw + 90));
 		float rotationSin1 = (float) Math.sin(Math.toRadians((this.renderYaw + 90)));
 		if(side.isServer()){
@@ -61,11 +62,10 @@ public class EntityLocoDieselEMDF7 extends DieselTrain {
 			bogieZ1-=pitchRads*2;
 			pitch -= pitchRads * 1.2;
 		}
-		if (pitchRads == 0.0) {
-			riddenByEntity.setPosition(bogieX1, pitch1, bogieZ1);
-		}
 		if (pitchRads > -1.01 && pitchRads < 1.01) {
 			riddenByEntity.setPosition(bogieX1, pitch, bogieZ1);
+		} else {
+			riddenByEntity.setPosition(bogieX1, (posY + getMountedYOffset() + riddenByEntity.getYOffset() + yOffset), bogieZ1);
 		}
 	}
 
@@ -148,7 +148,7 @@ public class EntityLocoDieselEMDF7 extends DieselTrain {
 
 	@Override
 	public float getOptimalDistance(EntityMinecart cart) {
-		return (0.5F);
+		return (1F);
 	}
 	@Override
 	public boolean canBeAdjusted(EntityMinecart cart) {

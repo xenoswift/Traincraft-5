@@ -37,6 +37,7 @@ public class EntityLocoDieselEMDF3 extends DieselTrain {
 
 	@Override
 	public void updateRiderPosition() {
+		if(riddenByEntity==null){return;}
 		double pitchRads = this.anglePitchClient * Math.PI / 180.0D;
 		double distance = 2.3;
 		double yOffset = 0.4;
@@ -148,7 +149,7 @@ public class EntityLocoDieselEMDF3 extends DieselTrain {
 
 	@Override
 	public float getOptimalDistance(EntityMinecart cart) {
-		return (0.8F);
+		return (1F);
 	}
 	@Override
 	public boolean canBeAdjusted(EntityMinecart cart) {

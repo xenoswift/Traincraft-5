@@ -3,13 +3,14 @@ package train.client.render;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.BlockRailBase;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Vec3;
 import org.lwjgl.opengl.GL11;
-import train.client.tmt.Tessellator;
+import tmt.Tessellator;
 import train.common.api.EntityRollingStock;
 import train.common.api.Locomotive;
 import train.common.entity.rollingStock.EntityTracksBuilder;
@@ -40,13 +41,12 @@ public class RenderRollingStock extends Render {
 		double var15 = cart.lastTickPosX + (cart.posX - cart.lastTickPosX) * time;
 		double var17 = cart.lastTickPosY + (cart.posY - cart.lastTickPosY) * time;
 		double var19 = cart.lastTickPosZ + (cart.posZ - cart.lastTickPosZ) * time;
-		double var21 = 0.30000001192092896D;
 		Vec3 var23 = cart.func_70489_a(var15, var17, var19);
 		float pitch = cart.prevRotationPitch + (cart.rotationPitch - cart.prevRotationPitch) * time;
 		Vec3 renderYVect = cart.yVector(var15, var17, var19);//only on TC rails
 		if (var23 != null) {
-			Vec3 var25 = cart.func_70495_a(var15, var17, var19, var21);
-			Vec3 var26 = cart.func_70495_a(var15, var17, var19, -var21);
+			Vec3 var25 = cart.func_70495_a(var15, var17, var19, 0.30000001192092896D);
+			Vec3 var26 = cart.func_70495_a(var15, var17, var19, -0.30000001192092896D);
 
 			if (var25 == null) {
 				var25 = var23;
@@ -68,8 +68,8 @@ public class RenderRollingStock extends Render {
 			}
 
 		}else if (renderYVect != null) {//only on TC rails
-			Vec3 var25 = cart.renderY(var15, var17, var19, var21);
-			Vec3 var26 = cart.renderY(var15, var17, var19, -var21);
+			Vec3 var25 = cart.renderY(var15, var17, var19, 0.30000001192092896D);
+			Vec3 var26 = cart.renderY(var15, var17, var19, -0.30000001192092896D);
 
 			if (var25 == null) {
 				var25 = renderYVect;
@@ -216,7 +216,6 @@ public class RenderRollingStock extends Render {
 		for (RenderEnum renders : RenderEnum.values()) {
 			if (renders.getEntityClass() != null && renders.getEntityClass().equals(cart.getClass())) {
 				//loadTexture(getTextureFile(renders.getTexture(), renders.getIsMultiTextured(), cart));
-				Tessellator.bindTexture(getTexture(cart));
 				if (renders.getTrans() != null) {
 					GL11.glTranslatef(renders.getTrans()[0], renders.getTrans()[1], renders.getTrans()[2]);
 				}
@@ -228,7 +227,17 @@ public class RenderRollingStock extends Render {
 				if (renders.getScale() != null) {
 					GL11.glScalef(renders.getScale()[0], renders.getScale()[1], renders.getScale()[2]);
 				}
+				Tessellator.bindTexture(getTexture(cart));
+
+				GL11.glEnable(GL11.GL_LIGHTING);
+				int skyLight = cart.worldObj.getLightBrightnessForSkyBlocks(i, j, k, 0);
+				OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit,  skyLight % 65536,
+						skyLight / 65536f);
+
+
 				renders.getModel().render(cart, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0625F);
+
+				//GL11.glEnable(GL11.GL_LIGHTING);
 
 				if (renders.hasSmoke()) {
 					if (cart.bogieLoco != null) {// || cart.bogieUtility[0]!=null){
@@ -246,6 +255,8 @@ public class RenderRollingStock extends Render {
 						renderExplosionFX(cart, yaw, pitch, renders.getExplosionType(), renders.getExplosionFX(), renders.getExplosionFXIterations(), renders.hasSmokeOnSlopes());
 					}
 				}
+
+				break;
 			}
 		}
 
@@ -262,39 +273,51 @@ public class RenderRollingStock extends Render {
 
 	private static void renderSmokeFX(EntityRollingStock cart, float yaw, float pitch, String smokeType, ArrayList<double[]> smokeFX, int smokeIterations, float time, boolean hasSmokeOnSlopes) {
 		if(cart instanceof Locomotive && !((Locomotive)cart).isLocoTurnedOn()){return;}
-		double rads = yaw * 3.141592653589793D / 180.0D;
-		double pitchRads = pitch * 3.141592653589793D / 180.0D;
 		if(Math.abs(pitch)>30)return;
 		//if (pitch != 0 && !hasSmokeOnSlopes) { return; }
 		if ((cart instanceof Locomotive && ((Locomotive) cart).getFuel() > 0) || (cart instanceof EntityTracksBuilder && ((EntityTracksBuilder) cart).getFuel() > 0)) {
 			int r = random.nextInt(10 * smokeIterations);
-			double spread = random.nextDouble() * 0.1 - random.nextDouble() * 0.1;
-			if (spread >= 1.0D) {
-				spread -= 1.0D;
-			}
-			else if (spread <= -1.0D) {
-				spread += 1.0D;
-			}
-
-			float x;
-			float z;
 			double speed = 0;
 			if (cart instanceof Locomotive) speed = ((Locomotive) cart).getSpeed();
 			if (r < ((smokeIterations * 4) + (speed * 5))) {
+				double rotatedvec[];
 				for (int j = 0; j < smokeIterations; j++) {
-					x = (float) cart.posX + random.nextFloat() * 0.2F;
-					z = (float) cart.posZ + random.nextFloat() * 0.2F;
-					double yCorrectDown = 0;
-					for (double[] smoke : smokeFX) {
 
-						if (pitchRads > 0){ yCorrectDown = -Math.tan(pitchRads);}
-						if (smoke[0] > 0){ yCorrectDown = Math.tan(-pitchRads);}
 
-						cart.worldObj.spawnParticle(smokeType, x + Math.cos(rads) * smoke[0] + (Math.cos(rads) * (Math.tan(-pitchRads) * smoke[1])), cart.posY + smoke[1] + ((Math.tan(pitchRads) * smoke[1])) + yCorrectDown, z + Math.sin(rads) * smoke[0] + (Math.sin(rads) * (Math.tan(-pitchRads) * smoke[1])), spread, Math.abs(spread), spread);
+					for (double[] explosion : smokeFX) {
+						rotatedvec = rotatePointF(explosion[0], explosion[1], explosion[2], pitch, yaw);
+						cart.worldObj.spawnParticle(smokeType,
+								cart.posX + rotatedvec[0], cart.posY + rotatedvec[1], cart.posZ +rotatedvec[2],
+								0,0,0);
 					}
 				}
 			}
 		}
+	}
+	public static final float radianF = (float) Math.PI / 180.0f;
+	public static double[] rotatePointF(double x, double y, double z, float pitch, float yaw) {
+		double[] xyz = new double[]{x,y,z};
+		float sin, cos;
+		//rotate pitch
+		if (pitch != 0.0F) {
+			pitch *= radianF;
+			cos = MathHelper.cos(pitch);
+			sin = MathHelper.sin(pitch);
+
+			xyz[0] = (y * sin) + (x * cos);
+			xyz[1] = (y * cos) - (x * sin);
+		}
+		//rotate yaw
+		if (yaw != 0.0F) {
+			yaw *= radianF;
+			cos = MathHelper.cos(yaw);
+			sin = MathHelper.sin(yaw);
+
+			xyz[0] = (x * cos) - (z * sin);
+			xyz[2] = (x * sin) + (z * cos);
+		}
+
+		return xyz;
 	}
 
 	private static void renderExplosionFX(EntityRollingStock cart, float yaw, float pitch, String explosionType, ArrayList<double[]> explosionFX, int explosionFXIterations, boolean hasSmokeOnSlopes) {
@@ -346,7 +369,7 @@ public class RenderRollingStock extends Render {
 		return getTexture(entity);
 	}
 
-	private static ResourceLocation getTexture(Entity entity) {
+	public static ResourceLocation getTexture(Entity entity) {
 		for (RenderEnum renders : RenderEnum.values()) {
 			if (renders.getEntityClass() != null && renders.getEntityClass().equals(entity.getClass())) { return getResourceFile(renders.getTexture(), renders.getIsMultiTextured(), (EntityRollingStock) entity); }
 		}

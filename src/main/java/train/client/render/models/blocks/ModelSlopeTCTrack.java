@@ -14,15 +14,11 @@ import train.common.tile.TileTCRail;
 @SideOnly(Side.CLIENT)
 public class ModelSlopeTCTrack extends ModelBase {
 	
-	private IModelCustom	modeltrack;
-	private IModelCustom	modelSlopeWood;
-	private IModelCustom	modelSlopeBallast;
+	private static IModelCustom modeltrack = AdvancedModelLoader.loadModel(new ResourceLocation(Info.modelPrefix + "track_slope.obj"));
+	private static IModelCustom modelSlopeWood = AdvancedModelLoader.loadModel(new ResourceLocation(Info.modelPrefix + "supports_wood.obj"));
+	private static IModelCustom modelSlopeBallast = AdvancedModelLoader.loadModel(new ResourceLocation(Info.modelPrefix + "supports_ballast.obj"));
 	
 	public ModelSlopeTCTrack() {
-		modeltrack = AdvancedModelLoader.loadModel(new ResourceLocation(Info.modelPrefix + "track_slope.obj"));
-		modelSlopeWood = AdvancedModelLoader.loadModel(new ResourceLocation(Info.modelPrefix + "supports_wood.obj"));
-		modelSlopeBallast = AdvancedModelLoader
-				.loadModel(new ResourceLocation(Info.modelPrefix + "supports_ballast.obj"));
 	}
 	
 	public void render(String type) {
@@ -53,30 +49,21 @@ public class ModelSlopeTCTrack extends ModelBase {
 	}
 	
 	public void render(String type, TileTCRail tcRail, double x, double y, double z) {
-		// Push a blank matrix onto the stack
-		GL11.glPushMatrix();
-		
-		// Move the object into the correct position on the block (because the OBJ's origin is the
-		// center of the object)
-		GL11.glTranslatef((float) x + 0.5f, (float) y, (float) z + 0.5f);
-		
-		GL11.glColor3f(1, 1, 1);
+
+		GL11.glColor4f(1, 1, 1, 1);
 		// GL11.glScalef(0.5f, 0.5f, 0.5f);
 		int facing = tcRail.getWorldObj().getBlockMetadata(tcRail.xCoord, tcRail.yCoord, tcRail.zCoord);
 		
 		if (facing == 3) {
 			GL11.glRotatef(-90, 0, 1, 0);
 		}
-		if (facing == 1) {
+		else if (facing == 1) {
 			GL11.glRotatef(90, 0, 1, 0);
 		}
-		if (facing == 0) {
+		else if (facing == 0) {
 			GL11.glRotatef(180, 0, 1, 0);
 		}
 		// GL11.glTranslatef(0.0f, 0.0f, -1.0f);
 		render(type);
-		
-		// Pop this matrix from the stack.
-		GL11.glPopMatrix();
 	}
 }
